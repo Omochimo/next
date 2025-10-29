@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<meta charset="UTF-8"><title>会員ページ</title>
+<style>
+body{font-family:sans-serif;padding:24px;max-width:560px;margin:auto}
+label{display:block;margin-top:12px} input,textarea,select,button{width:100%;padding:10px;margin-top:6px}
+small{color:#666}
+</style>
+<body>
+<h2>予約</h2>
+<div id="who"></div>
+
+<form id="bk">
+  <label>希望日<input type="date" id="date" required></label>
+  <label>時間帯<select id="tw" required>
+    <option value="">選択</option>
+    <option>12-14</option><option>14-16</option><option>16-18</option>
+    <option>18-20</option><option>20-22</option>
+  </select></label>
+  <label>住所<input id="addr" placeholder="区市町村・番地まで" required></label>
+  <label>最寄駅<input id="station" placeholder="例：渋谷" required></label>
+  <label>要望（任意）<textarea id="note" rows="3"></textarea></label>
+  <button>送信</button>
+</form>
+
+<p id="msg"><small>前日22時までに確定可否をメールします。</small></p>
+<button id="logout" style="margin-top:16px">ログアウト</button>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const supabase = createClient("https://xxxx.supabase.co","public-anon-key"); // ←自分の値
+
+// セッション確認
+const { data:{ session } } = await supabase.auth.getSession();
+if(!session){ location.href="index.html"; }
+
+// 表示
+document.getElementById('who').textContent = session.user.email + " でログイン中";
+
+// 予約送信
+document.getElementById('bk').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const payload = {
+    user_id: session.user.id,
+    date: (document.getElementById('date').value),
+    time_window: document.getElementById('tw').value,
+    address: document.getElementById('addr').value.trim(),
+    station: document.getElementById('station').value.trim(),
+    note: document.getElementById('note').value.trim(),
+    status: 'pending'
+  };
+  const { error } = await supabase.from('bookings').insert(payload);
+  const msg = document.getElementById('msg');
+  if(error){ msg.textContent = "送信エラー: " + error.message; }
+  else { msg.textContent = "受付しました。前日22時までに確定をお送りします。"; (e.target).reset(); }
+});
+
+// ログアウト
+document.getElementById('logout').onclick = async ()=>{
+  await supabase.auth.signOut(); location.href="index.html";
+};
+</script>
+</body>
+</html>
