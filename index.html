@@ -45,7 +45,6 @@ input,button{margin:8px;padding:10px;font-size:16px;}
 
     if(!invite || !email){ msg.textContent="入力が足りません。"; return; }
 
-    // Magic Linkメール送信
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options:{
