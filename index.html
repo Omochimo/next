@@ -1,62 +1,58 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><link rel="stylesheet" href="style.css"><a href="about.html">このサイトについて</a>
-  <form action="https://formspree.io/f/xxxx" method="POST">
-  <input name="email" placeholder="メール">
-  <textarea name="message" placeholder="メッセージ"></textarea>
-  <button>送信</button>
-</form>
-<meta charset="utf-8"><title>構造体</title></head>
+<head>
+  <meta charset="UTF-8">
+  <title>登録ページ</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{font-family:sans-serif;background:#f8f8f8;text-align:center;padding:48px}
+    input,button{margin:8px;padding:10px;font-size:16px}
+  </style>
+</head>
 <body>
   <h1>現在キャスト選別中</h1>
   <p>登録順にご案内します。</p>
-</body>
-</html>
 
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>登録ページ</title>
-<style>
-body{font-family:sans-serif;background:#f8f8f8;text-align:center;padding:50px;}
-input,button{margin:8px;padding:10px;font-size:16px;}
-</style>
-</head>
-<body>
+  <hr style="margin:24px 0">
+
   <h2>招待コード登録</h2>
   <input id="invite" placeholder="招待コード"><br>
   <input id="email" placeholder="メールアドレス"><br>
   <button onclick="register()">登録</button>
   <p id="msg"></p>
 
+  <p><a href="about.html">このサイトについて</a></p>
+
   <script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-  const SUPABASE_URL = "https://omochimo.github.io/next/.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlndmRvY3pua2hicHFwZXVlbW5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDYzMzksImV4cCI6MjA3NzI4MjMzOX0.8Pqqjm62nEfA8srRwtqS7Znk1TExU-PHvtxjFOYpEDw";
+    // ← Supabaseダッシュボード > Project Settings > API の値を入れる
+    const SUPABASE_URL = "https://<project-ref>.supabase.co";
+    const SUPABASE_KEY = "<anon-public-key>";
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  async function register() {
-    const invite = document.getElementById("invite").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const msg = document.getElementById("msg");
+    async function register() {
+      const invite = document.getElementById("invite").value.trim();
+      const email  = document.getElementById("email").value.trim();
+      const msg    = document.getElementById("msg");
 
-    if(!invite || !email){ msg.textContent="入力が足りません。"; return; }
+      if(!invite || !email){ msg.textContent = "入力が足りません。"; return; }
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options:{
-        emailRedirectTo: "https://omochimo.github.io/next/otp.html"
-      }
-    });
-    if(error){
-      msg.textContent = "エラー: " + error.message;
-    } else {
-      msg.textContent = "確認メールを送信しました。メール内リンクをクリックしてください。";
+      // まずは招待コード未検証でも可。後でEdge Functionで検証を追加。
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options:{ emailRedirectTo: "https://omochimo.github.io/next/otp.html" }
+      });
+
+      msg.textContent = error ? ("エラー: " + error.message)
+                              : "確認メールを送信しました。メールのリンクを開いてください。";
     }
-  }
+    window.register = register; // ボタンから呼べるように
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
